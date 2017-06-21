@@ -14,14 +14,13 @@ public class CleverRobot extends IRobotAdapter {
 	Sonar sonar = new Sonar();
 	private boolean tailLight;
 	Camera cam;
-	int distance;
+	int sideDist;
 	int sonarDist = 150;
 	int[] pix;
 	int camRuns = 0;
-	double[] RGBValues = new double[2];
+	double redPercent;
 	// runType 0 = Maze || runType 1 = DragRace || runType 2 = GoldRush
-	int runType = 0;
-	int hasCam = 1;
+	int runType = 1;
 
 	public CleverRobot(IRobotInterface iRobot) {
 		super(iRobot);
@@ -39,29 +38,22 @@ public class CleverRobot extends IRobotAdapter {
 	}
 
 	private void setup() throws Exception {
-		if (runType == 0 && hasCam == 1) {
+		if (runType == 0) {
 			// Maze Code
-			cam = new Camera(50, 50);
+			cam = new Camera(150, 50);
 			cam.enableBurst();
-			cam.setTimeout(200);
+			cam.setTimeout(250);
 			Thread picTake = new Thread(new Runnable() {
 				public void run() {
 					while (true) {
 						camRuns++;
 						cam.takeRGBPicture();
 						System.out.println("Picture " + camRuns);
-						RGBValues[0] = cam.getRedPercentage(35, false);
-						RGBValues[1] = cam.getGreenPercentage(10, false);
+						redPercent = cam.getRedPercentage(80, false);
 						System.out.println();
-						System.out.println("Red Percent: " + RGBValues[0]);
-						System.out.println("Green Percent: " + RGBValues[1]);
+						System.out.println("Red Percent: " + redPercent);
 						System.out.println(" ");
 
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
 					}
 				}
 
@@ -72,26 +64,31 @@ public class CleverRobot extends IRobotAdapter {
 	}
 
 	private boolean loop() throws Exception {
+		System.out.println("");
 		if (runType == 0) {
 			// Maze Code
-			readSensors(100);
-			distance = getWallSignal();
-
+			readSensors(6);
+			sideDist = getWallSignal();
 			if (isBumpRight() || isBumpLeft()) {
-
 				driveDirect(-500, -500);
-				Thread.sleep(200);
+				Thread.sleep(100);
 				driveDirect(-500, 500);
-				Thread.sleep(300);
-			} else if (distance > 10) {
-				driveDirect(125, 500);
+				Thread.sleep(325);
+			} else if (redPercent > 8) {
+				System.out.println("Found Red");
+				driveDirect(-500, 500);
+				Thread.sleep(750);
+				driveDirect(400, 400);
+				Thread.sleep(1000);
+			} else if (sideDist > 6) {
+				driveDirect(200, 500);
 			} else {
-				driveDirect(500, 125);
+				driveDirect(500, 110);
 			}
 		} else if (runType == 1) {
 			// DragRace Code
 			readSensors(100);
-			distance = getWallSignal();
+			sideDist = getWallSignal();
 
 			driveDirect(500, 500);
 			if (isBumpRight() || isBumpLeft()) {
@@ -99,14 +96,14 @@ public class CleverRobot extends IRobotAdapter {
 				Thread.sleep(350);
 				driveDirect(-500, 500);
 				Thread.sleep(400);
-			} else if (distance > 2) {
+			} else if (sideDist > 2) {
 				driveDirect(320, 500);
 			} else {
 				driveDirect(500, 450);
 			}
 		} else if (runType == 2) {
 			// GoldRush Code
-
+			````
 		}
 
 		return true;
