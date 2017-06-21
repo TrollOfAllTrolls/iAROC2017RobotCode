@@ -15,9 +15,13 @@ public class CleverRobot extends IRobotAdapter {
 	private boolean tailLight;
 	Camera cam;
 	int distance;
+	int sonarDist = 150;
 	int[] pix;
-	int runs = 1;
-	double[] RGBValues = new double[3];
+	int camRuns = 0;
+	double[] RGBValues = new double[2];
+	// runType 0 = Maze || runType 1 = DragRace || runType 2 = GoldRush
+	int runType = 0;
+	int hasCam = 1;
 
 	public CleverRobot(IRobotInterface iRobot) {
 		super(iRobot);
@@ -35,45 +39,75 @@ public class CleverRobot extends IRobotAdapter {
 	}
 
 	private void setup() throws Exception {
-		cam = new Camera(50, 50);
-		cam.enableBurst();
-		cam.setTimeout(1);
+		if (runType == 0 && hasCam == 1) {
+			// Maze Code
+			cam = new Camera(50, 50);
+			cam.enableBurst();
+			cam.setTimeout(200);
+			Thread picTake = new Thread(new Runnable() {
+				public void run() {
+					while (true) {
+						camRuns++;
+						cam.takeRGBPicture();
+						System.out.println("Picture " + camRuns);
+						RGBValues[0] = cam.getRedPercentage(35, false);
+						RGBValues[1] = cam.getGreenPercentage(10, false);
+						System.out.println();
+						System.out.println("Red Percent: " + RGBValues[0]);
+						System.out.println("Green Percent: " + RGBValues[1]);
+						System.out.println(" ");
 
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+
+			});
+
+			picTake.start();
+		}
 	}
 
 	private boolean loop() throws Exception {
-		readSensors(100);
-		distance = getWallSignal();
-		Thread picTake = new Thread(new Runnable() {
+		if (runType == 0) {
+			// Maze Code
+			readSensors(100);
+			distance = getWallSignal();
 
-			@Override
-			public void run() {
-				cam.takeRGBPicture();
-				System.out.println();
-				RGBValues[0] = cam.getRedPercentage(15, false);
-				RGBValues[1] = cam.getBluePercentage(15, false);
-				RGBValues[2] = cam.getGreenPercentage(15, false);
-				System.out.println(RGBValues[0] + " " + RGBValues[1] + " " + RGBValues[2]);
+			if (isBumpRight() || isBumpLeft()) {
+
+				driveDirect(-500, -500);
+				Thread.sleep(200);
+				driveDirect(-500, 500);
+				Thread.sleep(300);
+			} else if (distance > 10) {
+				driveDirect(125, 500);
+			} else {
+				driveDirect(500, 125);
 			}
+		} else if (runType == 1) {
+			// DragRace Code
+			readSensors(100);
+			distance = getWallSignal();
 
-		});
-		picTake.start();
+			driveDirect(500, 500);
+			if (isBumpRight() || isBumpLeft()) {
+				driveDirect(-500, -500);
+				Thread.sleep(350);
+				driveDirect(-500, 500);
+				Thread.sleep(400);
+			} else if (distance > 2) {
+				driveDirect(320, 500);
+			} else {
+				driveDirect(500, 450);
+			}
+		} else if (runType == 2) {
+			// GoldRush Code
 
-		if (isBumpRight()) {
-			driveDirect(-500, -500);
-			Thread.sleep(200);
-			driveDirect(-500, 500);
-			Thread.sleep(200);
-		} else if (distance > 10) {
-			driveDirect(125, 500);
-		} else {
-			driveDirect(500, 125);
 		}
-		// System.out.println("LEFT SONAR: " + sonar.readSonar("left"));
-		// Thread.sleep(1000);
-		// setTailLight(tailLight = !tailLight);
-		// System.out.println("RIGHT SONAR: " + sonar.readSonar("right"));
-		// System.out.println("CENTER SONAR: " + sonar.readSonar("center"));
 
 		return true;
 	}

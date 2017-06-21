@@ -101,7 +101,7 @@ public class Camera extends RPiCamera {
 				} else {
 					System.out.print(0);
 				}
-				if (count % 100 == 0) {
+				if (count % width == 0) {
 					System.out.println();
 				}
 				count++;
@@ -160,7 +160,7 @@ public class Camera extends RPiCamera {
 		if (debug) {
 			int count = 0;
 			for (boolean pix : bluePixels) {
-				if (count % 100 == 0) {
+				if (count % width == 0) {
 					System.out.println();
 				}
 				if (pix) {
@@ -225,7 +225,7 @@ public class Camera extends RPiCamera {
 		if (debug) {
 			int count = 0;
 			for (boolean pix : greenPixels) {
-				if (count % 100 == 0) {
+				if (count % width == 0) {
 					System.out.println();
 				}
 				if (pix) {
