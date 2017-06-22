@@ -5,6 +5,8 @@ package org.jointheleague.ecolban.cleverrobot;
  * version 0.9, 170227
  **********************************************************************************************/
 import java.io.IOException;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.jointheleague.ecolban.rpirobot.IRobotAdapter;
 import org.jointheleague.ecolban.rpirobot.IRobotInterface;
@@ -18,9 +20,13 @@ public class CleverRobot extends IRobotAdapter {
 	int sonarDist = 150;
 	int[] pix;
 	int camRuns = 0;
+	Random rand = new Random();
+	int randomNumber;
 	double redPercent;
-	// runType 0 = Maze || runType 1 = DragRace || runType 2 = GoldRush
-	int runType = 1;
+	boolean isInField = false;
+	// runType 0 = Maze || runType 1 = DragRace || runType 2 = GoldRush ||
+	// runType 3 = BackupMaze(NoCamera)
+	int runType = 2;
 
 	public CleverRobot(IRobotInterface iRobot) {
 		super(iRobot);
@@ -64,11 +70,10 @@ public class CleverRobot extends IRobotAdapter {
 	}
 
 	private boolean loop() throws Exception {
-		System.out.println("");
+		readSensors(100);
+		sideDist = getWallSignal();
 		if (runType == 0) {
 			// Maze Code
-			readSensors(6);
-			sideDist = getWallSignal();
 			if (isBumpRight() || isBumpLeft()) {
 				driveDirect(-500, -500);
 				Thread.sleep(100);
@@ -87,10 +92,6 @@ public class CleverRobot extends IRobotAdapter {
 			}
 		} else if (runType == 1) {
 			// DragRace Code
-			readSensors(100);
-			sideDist = getWallSignal();
-
-			driveDirect(500, 500);
 			if (isBumpRight() || isBumpLeft()) {
 				driveDirect(-500, -500);
 				Thread.sleep(350);
@@ -103,7 +104,38 @@ public class CleverRobot extends IRobotAdapter {
 			}
 		} else if (runType == 2) {
 			// GoldRush Code
-			````
+			System.out.println("Run");
+			if (true) {
+				randomNumber = rand.nextInt(700) + 400;
+				// if(){
+				//
+				// }
+				if (isBumpRight()) {
+					driveDirect(-500, -500);
+					Thread.sleep(150);
+					driveDirect(-300, 300);
+					Thread.sleep(randomNumber);
+				} else if (isBumpLeft()) {
+					driveDirect(-500, -500);
+					Thread.sleep(150);
+					driveDirect(300, -300);
+					Thread.sleep(randomNumber);
+				} else {
+					driveDirect(500, 500);
+				}
+			}
+		} else if (runType == 3) {
+			// Backup Maze Code
+			if (isBumpRight() || isBumpLeft()) {
+				driveDirect(-500, -500);
+				Thread.sleep(100);
+				driveDirect(-500, 500);
+				Thread.sleep(325);
+			} else if (sideDist > 6) {
+				driveDirect(200, 500);
+			} else {
+				driveDirect(500, 110);
+			}
 		}
 
 		return true;
